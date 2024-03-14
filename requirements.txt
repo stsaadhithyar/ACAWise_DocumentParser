@@ -12,3 +12,4 @@ pdf2image
 os
 img2pdf
 ocrmypdf
+shutil
