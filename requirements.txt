@@ -1,0 +1,7 @@
+boto3
+openpyxl
+amazon-textract-caller
+amazon-textract-prettyprinter
+amazon-textract-caller
+xlsxwriter
+amazon-textract-response-parser
