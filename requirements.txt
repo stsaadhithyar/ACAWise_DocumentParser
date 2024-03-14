@@ -5,3 +5,10 @@ amazon-textract-prettyprinter
 amazon-textract-caller
 xlsxwriter
 amazon-textract-response-parser
+PyPDF2
+cv2
+numpy
+pdf2image
+os
+img2pdf
+ocrmypdf
