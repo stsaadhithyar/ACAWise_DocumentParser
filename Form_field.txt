@@ -13,5 +13,6 @@
 13 Country and ZIP or foreign postal code
 17 ZIP Code
 Plan Start Month (enter 2-digit number):
+Employee's Age on January 1
 CORRECTED
 VOID
