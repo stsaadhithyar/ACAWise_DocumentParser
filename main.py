@@ -14,16 +14,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-s3_file = 's3://textract-testing-sts004/GMC1095c1_update1.pdf'
+s3_file = 'S3 URI'
 session = boto3.client('textract',
                       region_name='us-east-1',
                       aws_access_key_id=os.getenv('ACCESS_KEY_ID'),
                       aws_secret_access_key=os.getenv('SECRET_ACCESS_KEY'))
 textract_json = call_textract(input_document=s3_file, features = [Textract_Features.TABLES,Textract_Pretty_Print.FORMS],boto3_textract_client=session)
 
+#The Textract Extracts all the data in the PDF from that only the required data is extracted so for this the keys of the wanted data are present in the Form_field1.txt
+
 required_data =  []
 
-with open('/home/sts852-aadhithyar/Documents/ACA/Main/ACA_Main/Form_field1.txt', 'r') as f:
+with open('Form_field1.txt', 'r') as f:
     for line in f:
         required_data.append(line.strip())
 
@@ -33,7 +35,7 @@ from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter, column_index_from_string
 
 
-# Create a new Excel workbook
+# Opening a excel sheet with a existing template
 workbook = openpyxl.load_workbook('Final.xlsx')
 
 sheet = workbook.active
@@ -129,8 +131,10 @@ for page_idx, page in enumerate(doc.pages):
         temp_col = 1
     temp_row = row +1
 
+#deleting 2 empty columns
 sheet.delete_cols(13, 2)
 
+#The below code is used to delete empty rows
 rows_to_delete = []
 for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row):
     if all(cell.value is None for cell in row):
@@ -141,4 +145,4 @@ for row_index in sorted(rows_to_delete, reverse=True):
     sheet.delete_rows(row_index)
 
 
-workbook.save('/home/sts852-aadhithyar/Documents/ACA/Main/ACA_Main/Test.xlsx')
+workbook.save('Output.xlsx')
