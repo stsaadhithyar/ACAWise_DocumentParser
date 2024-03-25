@@ -1,0 +1,10 @@
+1 Name of employee (first name, middle initial, last name)
+2 Social security number (SSN)
+3 Street address (including apartment no.)
+4 City or town
+5 State or province
+6 Country and ZIP or foreign postal code
+10 Contact telephone number
+8 Employer identification number (EIN)
+Employee's Age on January 1
+Plan Start Month (enter 2-digit number):

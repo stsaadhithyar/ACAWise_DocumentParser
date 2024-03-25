@@ -23,33 +23,44 @@ textract_json = call_textract(input_document=s3_file, features = [Textract_Featu
 
 required_data =  []
 
-with open('/home/sts852-aadhithyar/Documents/ACA/Main/ACA_Main/Form_field.txt', 'r') as f:
+with open('/home/sts852-aadhithyar/Documents/ACA/Main/ACA_Main/Form_field1.txt', 'r') as f:
     for line in f:
         required_data.append(line.strip())
 
 doc = Document(textract_json)
 import openpyxl
 from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter, column_index_from_string
+
 
 # Create a new Excel workbook
-workbook = openpyxl.Workbook()
-global row
-row = 1
+workbook = openpyxl.load_workbook('Final.xlsx')
 
-for page_idx, page in enumerate(doc.pages, start=1):
+sheet = workbook.active
+global temp_row, temp_col, temp
+# temp is used to check whether part 3 is present or not it is used to check part 2 pages continues or not.
+temp = 1
+temp_row = 3
+temp_col = 1
+# Select the active sheet (create new sheet for each page)
+for page_idx, page in enumerate(doc.pages):
     tables = page.tables
     #part_1 dictionary has all the data form the form
     part_1 = {}
     #main dictionary contains only the required data which is needed
     main = {}
+    #temp_col = 1
     if len(tables) == 2:
+        # temp is checked whether it is 0 or not, if it is 0 then the previous page is also part 2 contnet.
+        if(temp == 0):
+          temp_col = 1
         table_0 = tables[0]
         table_1 = tables[1]
 
         # Data stored in dictionary
         for field in page.form.fields:
             part_1[str(field.key)] = str(field.value)
-            
+
         # Getting the required Data
         for i in required_data:
             main[i] = part_1.get(i, "")
@@ -63,59 +74,71 @@ for page_idx, page in enumerate(doc.pages, start=1):
                 temp.append(cell.text)
             # Append the content of the row to the main list
             l.append(temp)
-        
-        # Select the active sheet (create new sheet for each page)
-        sheet = workbook.create_sheet(title=f"Page_{page_idx}")
-
-        # Write "Part I" to the first row in column A and merge cells
-        sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(main) + 1)
-        sheet.cell(row=1, column=1).value = "Part I"
-        sheet.cell(row=1, column=1).font = Font(bold=True)
 
         # Write the keys and values from the dictionary to the Excel file
-        row = 3
+        row = temp_row
+        col = temp_col
         for key, value in main.items():
-            sheet.cell(row=row, column=1).value = key
-            sheet.cell(row=row, column=2).value = value
-            row += 1
+            if(key == "1 Name of employee (first name, middle initial, last name)"):
+              temp = value.split(" ")
+              if(len(temp) == 2):
+                temp.insert(1," ")
+              for i in temp:
+                sheet.cell(row=row, column=col).value = i
+                col += 1
+            else:
+                sheet.cell(row=row, column=col).value = value
+                col += 1
 
-        row += 1
-        # Write "Part II" in the next row
-        sheet.merge_cells(start_row=row, start_column=1, end_row=row, end_column=len(main) + 1)
-        sheet.cell(row=row, column=1).value = "Part II"
-        sheet.cell(row=row, column=1).font = Font(bold=True)
-        row += 2
 
+# Part II
         # Write the table data to the Excel file
-        for row_idx, row_data in enumerate(l[1:], start=row):  # Exclude the first row
+        for row_idx, row_data in enumerate(l[1:len(l)], start=row):  # Exclude the first row
             for col_idx, cell_value in enumerate(row_data):
-                sheet.cell(row=row_idx, column=col_idx + 1).value = cell_value
-            row += 1
-        
+                # This is the condition which is used to check for the value is 0 dollors.
+                if(len(cell_value) == 3 or (len(cell_value) > 0 and (ord(cell_value[0]) == 36 or cell_value[0] == "0")) or len(cell_value) == 0 or len(cell_value) == 6):
+                    sheet.cell(row=row, column=col+1).value = cell_value
+                    col += 1
+        temp_row = row
+        temp = 0
+        temp_col = col
+
     elif len(tables) == 1:
-        row += 2
-        sheet.merge_cells(start_row=row, start_column=1, end_row=row, end_column=len(main) + 1)
-        sheet.cell(row=row, column=1).value = "Part III"
-        sheet.cell(row=row, column=1).font = Font(bold=True)
-        row += 2
+# Part III
+        # The temp is used to set the last page is set tat the last page is part 3.
+        temp = 1
+        row = temp_row -1
+        col = temp_col
         table = tables[0]
         all_rows = []
+        #start is used for the multiple people in the part 3 content.
+        start = temp_col
         for i, rows in enumerate(table.rows):
             if i <= 1:
                 continue
             all_rows.append([cell.text for cell in rows.cells])
-        # Write data from the table to the sheet
-        #sheet = workbook.create_sheet(title=f"Page_{page_idx}")
-        # Write column names
-        column_names = [' ', 'First_Name', 'Middle_Initial', 'Last_Name', 'SSN or Other TIN', 'DOB (if SSN or Other TIN is not available)', 'all 12 months ', 'Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'June ', 'July ', 'Aug ', 'Sept ', 'Oct ', 'Nov ', 'Dec ']
-        for col_idx, column_name in enumerate(column_names, start=1):
-            sheet.cell(row=row, column=col_idx).value = column_name
-        row += 1
-        # Write data rows
-        for row_idx, row_data in enumerate(all_rows, start=2):
-            for col_idx, cell_value in enumerate(row_data, start=1):
-                sheet.cell(row=row, column=col_idx).value = cell_value
-            row += 1
+        for row_idx, row_data in enumerate(all_rows, start=row):
+            if(row_data[1] != ""):
+              #this is reset again so that the next person is writtien in the same line in next row
+              col = start
+              for col_idx, cell_value in enumerate(row_data[1:]):
+                  sheet.cell(row=row, column= col+1).value = cell_value
+                  col += 1
+              row += 1
+            #row -= 1
+        temp_col = 1
+    temp_row = row +1
 
-# Save the Excel workbook with a specified filename
-workbook.save('/home/sts852-aadhithyar/Documents/ACA/Main/ACA_Main/Test/Output.xlsx')
+sheet.delete_cols(13, 2)
+
+rows_to_delete = []
+for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row):
+    if all(cell.value is None for cell in row):
+        rows_to_delete.append(row[0].row)
+
+# Delete rows in reverse order to avoid index issues
+for row_index in sorted(rows_to_delete, reverse=True):
+    sheet.delete_rows(row_index)
+
+
+workbook.save('/home/sts852-aadhithyar/Documents/ACA/Main/ACA_Main/Test.xlsx')
