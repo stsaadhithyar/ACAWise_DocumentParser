@@ -1,6 +1,6 @@
 # ACA_DocumentParser
 
-There are mainly 5 iles which are present in the Repo and this code is mainly used to extract data from form 1095-c and then load them in the excel shee twhich is given as the Template.xlsx
+There are mainly 5 files which are present in the Repository and the above mentioned code is mainly used to extract data from form 1095-c and then load them in the excel sheet which is given as Template.xlsx
 
 Inorder to acces it First install the necessary packages which is present in the requirements.txt inorder to install it use the below command in the Terminal
 
