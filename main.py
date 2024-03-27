@@ -9,11 +9,14 @@ from trp.t_pipeline import order_blocks_by_geo
 from IPython.display import display
 import openpyxl
 from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter, column_index_from_string
 import os
 from dotenv import load_dotenv
 
+#Load the ACCESS_KEY_ID and the SECRET_ACCESS_KEY from the .env file where the details are stored.
 load_dotenv()
 
+#The S3 URI can be accessed from by loacting the file in the S3 Bucket in which it is present.
 s3_file = 'S3 URI'
 session = boto3.client('textract',
                       region_name='us-east-1',
@@ -22,18 +25,14 @@ session = boto3.client('textract',
 textract_json = call_textract(input_document=s3_file, features = [Textract_Features.TABLES,Textract_Pretty_Print.FORMS],boto3_textract_client=session)
 
 #The Textract Extracts all the data in the PDF from that only the required data is extracted so for this the keys of the wanted data are present in the Form_field1.txt
-
 required_data =  []
 
 with open('Form_field1.txt', 'r') as f:
     for line in f:
         required_data.append(line.strip())
+#Now the required_data contains only the key names which needs to be extracted.
 
 doc = Document(textract_json)
-import openpyxl
-from openpyxl.styles import Font
-from openpyxl.utils import get_column_letter, column_index_from_string
-
 
 # Opening a excel sheet with a existing template
 workbook = openpyxl.load_workbook('Final.xlsx')
